@@ -55,23 +55,19 @@ let passports = fs.readFileSync('input', 'utf-8').trim().split('\n\n')
 
 const splitPassport = (passport) => {
     const fields = passport.split(/ |\n/)
-    return fields.map(field => field.split(':'))
-}
-
-const findValue = (searchField, fields) => {
-    for ([field, value] of fields) {
-        if (field == searchField) {
-            return value
-        }
+    const data = {}
+    for (field of fields) {
+        const [name, value] = field.split(':')
+        data[name] = value
     }
+    return data 
 }
-
 
 const testPassport = (passport) => {
     const fields = splitPassport(passport)
     for (const [field, test] of Object.entries(rules)) {
-        if (passport.indexOf(field) >= 0) {
-            const value = findValue(field, fields)
+        if (field in fields) {
+            const value = fields[field]
             if (!test(value)) {
                 return false
             }
@@ -82,7 +78,7 @@ const testPassport = (passport) => {
 
 
 let count = 0
-for (passport of passports) {
+for (const passport of passports) {
     if (testPassport(passport)) {
         count += 1
     }
