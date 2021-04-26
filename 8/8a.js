@@ -1,56 +1,47 @@
 #!/usr/bin/env node
-const fs = require('fs')
+const fs = require('fs');
 
-const prog = fs.readFileSync('input', 'utf-8').trim().split('\n')
+const state = {
+  PC: 0,
+  ACC: 0,
+};
 
-const state = { PC : 0,
-                ACC: 0,
-              }
-
-function decode(ins) {
-  [op, operand] = ins.split(' ')
-    switch(op) {
-      case 'acc':
-        return (state) => {
-          state.ACC += parseInt(operand)
-            state.PC += 1
-        }
-      case 'nop':
-        return (state) => {
-          state.PC += 1
-        }
-      case 'jmp':
-        return (state) => {
-          state.PC += parseInt(operand)
-        }
-    }
-}
-
-function initTracker(state) {
-  const visited = []
-    function checkPC(state) {
-      if (visited.indexOf(state.PC) > 0) {
-        return true
-      } else {
-        visited.push(state.PC)
-          return false
-      }
-    }
-  return checkPC
-}
-
-const checkPC = initTracker(state)
-
-let ins = prog[0]
-while(true) {
-  if (checkPC(state)) {
-    console.log(state.ACC)
-    process.exit()
+function decodeExecute(op, operand) {
+  switch (op) {
+    case 'acc':
+      state.ACC += operand;
+      state.PC += 1;
+      break;
+    case 'nop':
+      state.PC += 1;
+      break;
+    case 'jmp':
+      state.PC += operand;
+      break;
+    default:
   }
-  const execute = decode(ins)
-  execute(state)
-  ins = prog[state.PC]
 }
 
+function initTracker() {
+  const visited = [];
+  return (pc) => {
+    if (visited.includes(pc)) {
+      return false;
+    }
+    visited.push(pc);
+    return true;
+  };
+}
 
+function check(prog) {
+  const haveNotVisited = initTracker();
+  do {
+    const [op, operand] = prog[state.PC].split(' ');
+    decodeExecute(op, parseInt(operand, 10));
+  } while (haveNotVisited(state.PC));
+  console.log(state.ACC);
+}
 
+const prog = fs.readFileSync('input', 'utf-8').trim().split('\n');
+
+check(prog);
